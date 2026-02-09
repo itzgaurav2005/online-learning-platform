@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Layout from '../components/Layout';
+import Layout from '../../components/Layout';
 import Link from 'next/link';
-import apiClient from '../lib/api';
+import apiClient from '../../lib/api';
 import { Search, Star, Users, Clock, BookOpen } from 'lucide-react';
 
 export default function Courses() {

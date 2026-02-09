@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Layout from '../components/Layout';
-import { useAuth } from '../context/AuthContext';
+import Layout from '../../components/Layout';
+import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function Login() {

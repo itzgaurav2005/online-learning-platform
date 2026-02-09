@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '../../components/Layout';
-import { useAuth } from '../../context/AuthContext';
-import apiClient from '../../lib/api';
+import Layout from '../../../components/Layout';
+import { useAuth } from '../../../context/AuthContext';
+import apiClient from '../../../lib/api';
 import Link from 'next/link';
 import { BookOpen, TrendingUp, Award, Clock, Star, CheckCircle } from 'lucide-react';
 
