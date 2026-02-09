@@ -72,7 +72,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-5">
                   Password
                 </label>
                 <div className="relative">
