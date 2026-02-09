@@ -38,7 +38,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api', courseRoutes);
+app.use('/api/courses', courseRoutes);
 app.use('/api', moduleRoutes);
 app.use('/api', enrollmentRoutes);
 app.use('/api', progressRoutes);
