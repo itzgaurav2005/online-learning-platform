@@ -337,18 +337,14 @@ npx prisma migrate reset       # Reset database (careful!)
 **Issue:** CORS errors
 **Solution:** Ensure FRONTEND_URL in .env matches your frontend URL
 
-## 🤝 Contributing
-
-This is a portfolio project. Feel free to fork and modify for your own use.
-
 ## 📄 License
 
 MIT
 
 ## 👤 Author
 
-Your Name - Portfolio Project
+ Gaurav Pandey
 
 ---
 
-**Made with 💙 for learning and interviews**
+**Made with ❤️ for learning**
