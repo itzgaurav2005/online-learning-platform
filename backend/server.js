@@ -1,4 +1,4 @@
-require("/createAdmin.js");
+require("/createadmin.js");
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
