@@ -9,6 +9,39 @@ import {
   ChevronRight, Award, TrendingUp, Star
 } from 'lucide-react';
 
+// Helper function to convert YouTube URLs to embed format
+const getEmbedUrl = (url) => {
+  if (!url) return '';
+  
+  // Handle different YouTube URL formats
+  let videoId = '';
+  
+  // Format 1: https://www.youtube.com/watch?v=VIDEO_ID
+  if (url.includes('youtube.com/watch?v=')) {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    videoId = urlParams.get('v');
+  }
+  // Format 2: https://youtu.be/VIDEO_ID
+  else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1].split('?')[0];
+  }
+  // Format 3: Already an embed URL
+  else if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  // Format 4: Other video platforms or direct URLs
+  else {
+    return url;
+  }
+  
+  // Return YouTube embed URL
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  return url;
+};
+
 export default function StudentCourse() {
   const router = useRouter();
   const { id } = router.query;
@@ -164,9 +197,10 @@ export default function StudentCourse() {
                     <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center mb-6">
                       {selectedLesson.videoUrl ? (
                         <iframe
-                          src={selectedLesson.videoUrl}
+                          src={getEmbedUrl(selectedLesson.videoUrl)}
                           className="w-full h-full rounded-lg"
                           allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         />
                       ) : (
                         <div className="text-white text-center">
