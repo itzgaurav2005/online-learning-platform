@@ -142,14 +142,41 @@ router.post('/modules/:moduleId/lessons',
   authenticate,
   authorize('INSTRUCTOR', 'ADMIN'),
   [
-    param('moduleId').isInt(),
-    body('title').trim().notEmpty().withMessage('Title is required'),
-    body('contentType').isIn(['VIDEO', 'TEXT']).withMessage('Content type must be VIDEO or TEXT'),
-    body('videoUrl').optional().isURL(),
-    body('textContent').optional().trim(),
-    body('duration').optional().isInt({ min: 0 }),
-    body('orderIndex').isInt({ min: 0 })
-  ],
+  param('moduleId').isInt(),
+
+  body('title')
+    .trim()
+    .notEmpty()
+    .withMessage('Title is required'),
+
+  body('contentType')
+    .isIn(['VIDEO', 'TEXT'])
+    .withMessage('Content type must be VIDEO or TEXT'),
+
+  // Validate videoUrl ONLY if VIDEO
+  body('videoUrl')
+    .if(body('contentType').equals('VIDEO'))
+    .notEmpty()
+    .withMessage('Video URL is required')
+    .bail()
+    .isURL()
+    .withMessage('Valid video URL is required'),
+
+  // Validate textContent ONLY if TEXT
+  body('textContent')
+    .if(body('contentType').equals('TEXT'))
+    .notEmpty()
+    .withMessage('Text content is required'),
+
+  body('duration')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Duration must be a positive number'),
+
+  body('orderIndex')
+    .isInt({ min: 0 })
+    .withMessage('Order index must be a positive integer')
+],
   validate,
   async (req, res) => {
     try {
@@ -201,8 +228,15 @@ router.put('/lessons/:id',
     param('id').isInt(),
     body('title').optional().trim().notEmpty(),
     body('contentType').optional().isIn(['VIDEO', 'TEXT']),
-    body('videoUrl').optional().isURL(),
-    body('textContent').optional().trim(),
+    body('videoUrl')
+  .optional({ checkFalsy: true })
+  .isURL()
+  .withMessage('Valid video URL is required'),
+
+body('textContent')
+  .optional({ checkFalsy: true })
+  .trim(),
+
     body('duration').optional().isInt({ min: 0 }),
     body('orderIndex').optional().isInt({ min: 0 })
   ],
