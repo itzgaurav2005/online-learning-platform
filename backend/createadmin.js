@@ -3,21 +3,21 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const hashed = await bcrypt.hash("password123", 10);
+async function createAdmin() {
+  const passwordHash = await bcrypt.hash('password123', 10);
 
-  await prisma.user.create({
+  const admin = await prisma.user.create({
     data: {
-      name: "Admin",
-      email: "admin@example.com",
-      password_hash: hashed,
-      role: "ADMIN"
+      name: 'Gaurav',
+      email: 'admin@example.com',
+      passwordHash,
+      role: 'ADMIN'
     }
   });
 
-  console.log("Admin created!");
+  console.log('Admin created:', admin);
 }
 
-main()
+createAdmin()
   .catch(console.error)
   .finally(() => prisma.$disconnect());
