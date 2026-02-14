@@ -60,8 +60,8 @@ router.post('/create-checkout-session', authenticate, authorize('STUDENT'), asyn
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.CLIENT_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/payment/cancel?course_id=${courseId}`,
+      success_url: `${process.env.FRONTEND_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?course_id=${courseId}`,
       metadata: {
         userId: userId.toString(),
         courseId: courseId.toString(),
