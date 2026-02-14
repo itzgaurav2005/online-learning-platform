@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import { useAuth } from '../../context/AuthContext';
 import apiClient from '../../lib/api';
+import { formatPrice, getStripe } from '../../lib/stripe';
+import { Loader } from 'lucide-react';
 import { Star, Users, BookOpen, Clock, Award, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function CourseDetail() {
@@ -14,6 +16,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
   const [expandedModules, setExpandedModules] = useState({});
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -48,17 +51,22 @@ export default function CourseDetail() {
     }
   };
 
-  const handleEnroll = async () => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+const handleEnroll = async () => {
+  if (!user) {
+    router.push('/login');
+    return;
+  }
 
-    if (user.role !== 'STUDENT') {
-      alert('Only students can enroll in courses');
-      return;
-    }
+  if (user.role !== 'STUDENT') {
+    alert('Only students can enroll in courses');
+    return;
+  }
 
+  // Check if course is free or paid
+  const price = parseFloat(course.price || 0);
+
+  if (price === 0) {
+    // Free course - direct enrollment
     setEnrolling(true);
     try {
       await apiClient.post(`/courses/${id}/enroll`);
@@ -70,7 +78,22 @@ export default function CourseDetail() {
     } finally {
       setEnrolling(false);
     }
-  };
+  } else {
+    // Paid course - redirect to Stripe checkout
+    setProcessingPayment(true);
+    try {
+      const { data } = await apiClient.post('/payments/create-checkout-session', {
+        courseId: id
+      });
+
+      window.location.href = data.url;
+      
+    } catch (error) {
+      alert(error.response?.data?.error || 'Payment initialization failed');
+      setProcessingPayment(false);
+    }
+  }
+};
 
   const toggleModule = (moduleId) => {
     setExpandedModules(prev => ({
@@ -242,39 +265,57 @@ export default function CourseDetail() {
           {/* Sidebar */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-20">
+              
               {isEnrolled ? (
-                <div className="space-y-4">
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                    <div className="text-green-800 font-semibold mb-2">You're enrolled!</div>
-                    <p className="text-sm text-green-600">Continue learning in your dashboard</p>
-                  </div>
-                  <button
-                    onClick={() => router.push('/dashboard/student')}
-                    className="w-full btn-primary"
-                  >
-                    Go to Dashboard
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="text-center py-4">
-                    <div className="text-4xl font-bold gradient-text mb-2">Free</div>
-                    <p className="text-gray-600">Start learning today</p>
-                  </div>
-                  <button
-                    onClick={handleEnroll}
-                    disabled={enrolling || !user || user.role !== 'STUDENT'}
-                    className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {enrolling ? 'Enrolling...' : user ? 'Enroll Now' : 'Login to Enroll'}
-                  </button>
-                  {!user && (
-                    <p className="text-sm text-center text-gray-500">
-                      Please login to enroll in this course
-                    </p>
-                  )}
-                </div>
-              )}
+  <div className="space-y-4">
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+      <div className="text-green-800 font-semibold mb-2">You're enrolled!</div>
+      <p className="text-sm text-green-600">Continue learning in your dashboard</p>
+    </div>
+    <button
+      onClick={() => router.push('/dashboard/student')}
+      className="w-full btn-primary"
+    >
+      Go to Dashboard
+    </button>
+  </div>
+) : (
+  <div className="space-y-4">
+    <div className="text-center py-4">
+      {parseFloat(course.price || 0) === 0 ? (
+        <div className="text-4xl font-bold text-green-600 mb-2">Free</div>
+      ) : (
+        <div className="text-4xl font-bold gradient-text mb-2">
+          {formatPrice(course.price, course.currency || 'usd')}
+        </div>
+      )}
+      <p className="text-gray-600">
+        {parseFloat(course.price || 0) === 0 ? 'Start learning for free' : 'One-time payment'}
+      </p>
+    </div>
+    <button
+      onClick={handleEnroll}
+      disabled={enrolling || processingPayment || !user || user.role !== 'STUDENT'}
+      className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+    >
+      {enrolling || processingPayment ? (
+        <>
+          <Loader className="animate-spin" size={20} />
+          <span>{processingPayment ? 'Processing...' : 'Enrolling...'}</span>
+        </>
+      ) : (
+        <span>
+          {parseFloat(course.price || 0) === 0 ? 'Enroll Free' : `Enroll for ${formatPrice(course.price, course.currency || 'usd')}`}
+        </span>
+      )}
+    </button>
+    {!user && (
+      <p className="text-sm text-center text-gray-500">
+        Please login to enroll in this course
+      </p>
+    )}
+  </div>
+)}
 
               <div className="mt-6 pt-6 border-t border-gray-200 space-y-3 text-sm">
                 <div className="flex justify-between">

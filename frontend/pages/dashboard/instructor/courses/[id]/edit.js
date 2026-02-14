@@ -25,6 +25,8 @@ export default function EditCourse() {
     title: '',
     description: '',
     isPublished: false,
+    price: 0,
+    currency: 'usd',
   });
   const [showModuleForm, setShowModuleForm] = useState(false);
   const [moduleData, setModuleData] = useState({ title: '', orderIndex: 0 });
@@ -52,6 +54,8 @@ export default function EditCourse() {
         title: data.title,
         description: data.description,
         isPublished: data.isPublished,
+        price: data.price || 0,
+        currency: data.currency || 'usd',
       });
       // Expand first module by default
       if (data.modules?.length > 0) {
@@ -261,6 +265,36 @@ export default function EditCourse() {
                 </button>
               </div>
             </div>
+
+            <div>
+  <label className="block text-sm font-semibold text-gray-700 mb-2">
+    Course Price
+  </label>
+  <div className="flex items-center space-x-3">
+    <select
+      value={courseData.currency}
+      onChange={(e) => setCourseData({ ...courseData, currency: e.target.value })}
+      className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+    >
+      <option value="usd">USD ($)</option>
+      <option value="eur">EUR (€)</option>
+      <option value="gbp">GBP (£)</option>
+      <option value="inr">INR (₹)</option>
+    </select>
+    <input
+      type="number"
+      step="0.01"
+      min="0"
+      value={courseData.price}
+      onChange={(e) => setCourseData({ ...courseData, price: parseFloat(e.target.value) || 0 })}
+      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      placeholder="0.00"
+    />
+  </div>
+  <p className="mt-1 text-xs text-gray-500">
+    Set to 0 for free courses. Students will need to pay to enroll in paid courses.
+  </p>
+</div>
 
             {/* Modules */}
             <div className="bg-white rounded-2xl shadow-lg p-6">
