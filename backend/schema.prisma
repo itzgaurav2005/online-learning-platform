@@ -1,5 +1,4 @@
-// This is your Prisma schema file
-// Learn more: https://pris.ly/d/prisma-schema
+// Updated Prisma schema with Payment support
 
 generator client {
   provider = "prisma-client-js"
@@ -16,11 +15,6 @@ enum UserRole {
   ADMIN
 }
 
-enum ContentType {
-  VIDEO
-  TEXT
-}
-
 model User {
   id           Int          @id @default(autoincrement())
   name         String
@@ -30,11 +24,11 @@ model User {
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
   
-  // Relations
   coursesCreated Course[]     @relation("InstructorCourses")
   enrollments    Enrollment[]
   progress       Progress[]
   reviews        Review[]
+  payments       Payment[]
 
   @@map("users")
 }
@@ -46,14 +40,17 @@ model Course {
   instructorId Int     @map("instructor_id")
   isPublished Boolean  @default(false) @map("is_published")
   isApproved  Boolean  @default(false) @map("is_approved")
+  price       Decimal  @default(0) @db.Decimal(10, 2)
+  currency    String   @default("usd")
   createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
   
-  // Relations
   instructor  User         @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
   modules     Module[]
   enrollments Enrollment[]
   reviews     Review[]
+  payments    Payment[]
 
   @@index([instructorId])
   @@map("courses")
@@ -65,8 +62,8 @@ model Module {
   title      String
   orderIndex Int      @map("order_index")
   createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   
-  // Relations
   course  Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons Lesson[]
 
@@ -75,17 +72,17 @@ model Module {
 }
 
 model Lesson {
-  id          Int         @id @default(autoincrement())
-  moduleId    Int         @map("module_id")
+  id          Int      @id @default(autoincrement())
+  moduleId    Int      @map("module_id")
   title       String
-  contentType ContentType @map("content_type")
-  videoUrl    String?     @map("video_url")
-  textContent String?     @db.Text @map("text_content")
-  duration    Int?        // in minutes
-  orderIndex  Int         @map("order_index")
-  createdAt   DateTime    @default(now()) @map("created_at")
+  contentType String   @map("content_type")
+  videoUrl    String?  @map("video_url") @db.Text
+  textContent String?  @map("text_content") @db.Text
+  duration    Int?
+  orderIndex  Int      @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   
-  // Relations
   module   Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   progress Progress[]
 
@@ -99,7 +96,6 @@ model Enrollment {
   courseId   Int      @map("course_id")
   enrolledAt DateTime @default(now()) @map("enrolled_at")
   
-  // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
@@ -110,13 +106,12 @@ model Enrollment {
 }
 
 model Progress {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  lessonId  Int      @map("lesson_id")
-  completed Boolean  @default(false)
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  lessonId    Int       @map("lesson_id")
+  completed   Boolean   @default(false)
   completedAt DateTime? @map("completed_at")
   
-  // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
@@ -130,15 +125,37 @@ model Review {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
   courseId  Int      @map("course_id")
-  rating    Int      // 1-5
+  rating    Int
   comment   String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
   
-  // Relations
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@index([userId])
   @@index([courseId])
   @@map("reviews")
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  userId            Int      @map("user_id")
+  courseId          Int      @map("course_id")
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String
+  status            String
+  stripeSessionId   String?  @unique @map("stripe_session_id")
+  stripePaymentId   String?  @map("stripe_payment_id")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course  Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([stripeSessionId])
+  @@map("payments")
 }

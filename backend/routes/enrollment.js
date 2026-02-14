@@ -31,6 +31,14 @@ router.post('/courses/:courseId/enroll',
         return res.status(400).json({ error: 'Course is not available for enrollment' });
       }
 
+      if (parseFloat(course.price) > 0) {
+        return res.status(400).json({ 
+          error: 'This is a paid course. Please complete payment first.',
+          requiresPayment: true,
+          price: course.price
+        });
+      }
+
       // Check if already enrolled
       const existingEnrollment = await prisma.enrollment.findUnique({
         where: {

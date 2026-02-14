@@ -1,4 +1,3 @@
-require("/createadmin.js");
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -12,6 +11,7 @@ const enrollmentRoutes = require('./routes/enrollment');
 const progressRoutes = require('./routes/progress');
 const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
+const paymentRoutes = require('./routes/payments');
 
 const app = express();
 
@@ -21,6 +21,9 @@ const limiter = rateLimit({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
+
+// IMPORTANT: Webhook route BEFORE body parser (needs raw body)
+app.use('/api/payments/webhook', paymentRoutes);
 
 // Middleware
 app.use(cors({
@@ -45,6 +48,7 @@ app.use('/api', enrollmentRoutes);
 app.use('/api', progressRoutes);
 app.use('/api', reviewRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 handler
 app.use((req, res) => {

@@ -134,17 +134,19 @@ router.post('/',
   authorize('INSTRUCTOR', 'ADMIN'),
   [
     body('title').trim().notEmpty().withMessage('Title is required'),
-    body('description').trim().notEmpty().withMessage('Description is required')
+    body('description').trim().notEmpty().withMessage('Description is required'),
+    body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   ],
   validate,
   async (req, res) => {
     try {
-      const { title, description } = req.body;
+      const { title, description, price } = req.body;
 
       const course = await prisma.course.create({
         data: {
           title,
           description,
+          price: price || 0,
           instructorId: req.user.id
         },
         include: {
@@ -173,13 +175,14 @@ router.put('/:id',
     param('id').isInt(),
     body('title').optional().trim().notEmpty(),
     body('description').optional().trim().notEmpty(),
-    body('isPublished').optional().isBoolean()
+    body('isPublished').optional().isBoolean(),
+    body('price').optional().isFloat({ min: 0 }),
   ],
   validate,
   async (req, res) => {
     try {
       const courseId = parseInt(req.params.id);
-      const { title, description, isPublished } = req.body;
+      const { title, description, isPublished, price } = req.body;
 
       // Check ownership
       const existingCourse = await prisma.course.findUnique({
@@ -199,7 +202,8 @@ router.put('/:id',
         data: {
           ...(title && { title }),
           ...(description && { description }),
-          ...(typeof isPublished === 'boolean' && { isPublished })
+          ...(typeof isPublished === 'boolean' && { isPublished }),
+          ...(price !== undefined && { price }),
         },
         include: {
           instructor: {
